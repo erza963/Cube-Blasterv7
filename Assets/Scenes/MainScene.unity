@@ -1937,7 +1937,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 526dbc59d1f4de145b8766acac68f4e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scrollSpeedX: 0
+  scrollSpeedX: 0.001
   scrollSpeedY: 0.002
 --- !u!64 &523159516
 MeshCollider:
@@ -3098,7 +3098,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 526dbc59d1f4de145b8766acac68f4e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scrollSpeedX: 0
+  scrollSpeedX: 0.001
   scrollSpeedY: 0.002
 --- !u!1 &1220047879
 GameObject:
