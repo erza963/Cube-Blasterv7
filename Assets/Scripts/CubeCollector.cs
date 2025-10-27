@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class CubeCollector : MonoBehaviour
 {
@@ -101,14 +102,26 @@ public class CubeCollector : MonoBehaviour
     {
         Time.timeScale = 1f;
 
-        // Save total score for ScoreManager
-        PlayerPrefs.SetInt("LastRunScore", totalCubesCollected);
+        // ?? Save last game’s total cubes as a new score
+        int newScore = totalCubesCollected;
 
-        // Also save total progress for continuity
+        // Load old scores
+        int s1 = PlayerPrefs.GetInt("Score1", 0);
+        int s2 = PlayerPrefs.GetInt("Score2", 0);
+
+        // Shift older scores down, add new one at top
+        PlayerPrefs.SetInt("Score3", s2);
+        PlayerPrefs.SetInt("Score2", s1);
+        PlayerPrefs.SetInt("Score1", newScore);
+
+        // Save global total (optional)
         PlayerPrefs.SetInt("TotalCubes", totalCubesCollected);
-        PlayerPrefs.Save(); // ? Ensures everything is written before scene load
+        PlayerPrefs.Save();
 
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+        Debug.Log($"? Saved Scores: [{newScore}, {s1}, {s2}]");
+
+        // Load menu scene (or restart same scene if it’s single-scene setup)
+        SceneManager.LoadScene("MainScene");
     }
 
     private void ShowLevelUpPanel()
