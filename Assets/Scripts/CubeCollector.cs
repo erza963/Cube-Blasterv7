@@ -104,9 +104,9 @@ public class CubeCollector : MonoBehaviour
         // Save total score for ScoreManager
         PlayerPrefs.SetInt("LastRunScore", totalCubesCollected);
 
-        // Optional: also store overall progress
+        // Also save total progress for continuity
         PlayerPrefs.SetInt("TotalCubes", totalCubesCollected);
-        PlayerPrefs.Save();
+        PlayerPrefs.Save(); // ? Ensures everything is written before scene load
 
         UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
     }
