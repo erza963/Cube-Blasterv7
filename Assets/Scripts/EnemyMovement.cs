@@ -3,19 +3,32 @@
 public class EnemyMovement : MonoBehaviour
 {
     public Transform target; // Player reference
-    public float speed = 2f;
+    public float baseSpeed = 2f;
+    private float speed;
 
-    public float avoidDistance = 1.5f;    // Distance to maintain from other enemies
-    public float avoidStrength = 1f;      // How strongly to push away
+    public float avoidDistance = 1.5f;
+    public float avoidStrength = 1f;
+
+    void Start()
+    {
+        // Set initial speed scaled by level
+        ScaleSpeedByLevel(LevelManager.CurrentLevel);
+    }
+
+    public void ScaleSpeedByLevel(int level)
+    {
+        // Enemies move faster with each level
+        speed = baseSpeed + (level - 1) * 0.5f; 
+    }
 
     void Update()
     {
         if (target == null) return;
 
-        // Start with direction toward the player
+        // Move toward player
         Vector3 moveDir = (target.position - transform.position).normalized;
 
-        // Add repelling force from nearby enemies
+        // Avoid overlapping with nearby enemies
         foreach (GameObject other in GameObject.FindGameObjectsWithTag("Enemy"))
         {
             if (other != this.gameObject)
@@ -43,7 +56,7 @@ public class EnemyMovement : MonoBehaviour
                 health.TakeDamage(1);
             }
 
-            Destroy(gameObject); // Optional: remove enemy after damaging
+            Destroy(gameObject); // Optional: remove after hitting player
         }
     }
 }

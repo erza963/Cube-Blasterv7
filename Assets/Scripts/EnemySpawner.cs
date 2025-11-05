@@ -4,7 +4,12 @@ public class EnemySpawner : MonoBehaviour
 {
     public GameObject enemyPrefab;
     public Transform player;
-    public float spawnRate = 2f;
+
+    [Header("Spawn Settings")]
+    public float baseSpawnRate = 2f;  // initial delay between spawns
+    public float minSpawnRate = 0.5f; // minimum cap
+    private float currentSpawnRate;
+    private float spawnTimer;
 
     private float minDistanceBetweenEnemies = 2f;
     private int maxSpawnAttempts = 10;
@@ -14,31 +19,64 @@ public class EnemySpawner : MonoBehaviour
         if (enemyPrefab == null || player == null)
         {
             Debug.LogError("EnemySpawner: Missing references! Assign enemyPrefab and player in the Inspector.");
+            enabled = false;
             return;
         }
 
-        InvokeRepeating(nameof(SpawnEnemy), 1f, spawnRate);
+        currentSpawnRate = baseSpawnRate;
+        spawnTimer = currentSpawnRate;
+
+        // 🔗 Listen for level-up event
+        LevelManager.OnLevelChanged += HandleLevelUp;
+    }
+
+    void OnDestroy()
+    {
+        // Prevent event leaks when reloading
+        LevelManager.OnLevelChanged -= HandleLevelUp;
+    }
+
+    void Update()
+    {
+        spawnTimer -= Time.deltaTime;
+
+        if (spawnTimer <= 0f)
+        {
+            SpawnEnemy();
+            spawnTimer = currentSpawnRate;
+        }
+    }
+
+    private void HandleLevelUp(int newLevel)
+    {
+        // Each new level slightly reduces spawn delay
+        currentSpawnRate = Mathf.Max(minSpawnRate, baseSpawnRate - (newLevel - 1) * 0.2f);
+        Debug.Log($"⚡ Enemy spawn rate increased! New rate: {currentSpawnRate:F2}s");
     }
 
     void SpawnEnemy()
     {
         Vector3 spawnPos = GetValidSpawnPosition();
-        if (spawnPos != Vector3.zero)
+        if (spawnPos == Vector3.zero) return;
+
+        GameObject enemy = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
+
+        // Assign player target
+        EnemyMovement movement = enemy.GetComponent<EnemyMovement>();
+        if (movement != null)
         {
-            GameObject enemy = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
-            EnemyMovement movement = enemy.GetComponent<EnemyMovement>();
-            if (movement != null)
-            {
-                movement.target = player;
-            }
-            else
-            {
-                Debug.LogError("Spawned enemy is missing the EnemyMovement script!");
-            }
+            movement.target = player;
+            movement.ScaleSpeedByLevel(LevelManager.CurrentLevel);
+        }
+
+        // Scale enemy health
+        EnemyHealth health = enemy.GetComponent<EnemyHealth>();
+        if (health != null)
+        {
+            health.InitializeHealth(LevelManager.CurrentLevel);
         }
     }
 
-    // ✅ Helper to find safe spawn position
     Vector3 GetValidSpawnPosition()
     {
         for (int attempt = 0; attempt < maxSpawnAttempts; attempt++)
@@ -61,7 +99,6 @@ public class EnemySpawner : MonoBehaviour
                 return spawnPos;
         }
 
-        Debug.Log("EnemySpawner: Couldn't find safe spawn position.");
         return Vector3.zero;
     }
 }
